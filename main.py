@@ -2,8 +2,54 @@ import tkinter as tk
 from tkinter import ttk
 import sqlite3
 
+
+# Создаём базу данных
+def init_db():
+    conn = sqlite3.connect('business_orders.db')
+    cur = conn.cursor()
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS orders (
+    id INTEGER PRIMARY KEY,
+    customer_name TEXT NOT NULL,
+    order_details TEXT NOT NULL,
+    status TEXT NOT NULL
+    )
+    """)
+    conn.commit()
+    conn.close()
+
+
 def add_order():
-    pass
+    conn = sqlite3.connect('business_orders.db')
+    cur = conn.cursor()
+
+    cur.execute(
+        "INSERT INTO orders (customer_name, order_details, status) VALUES (?, ?, 'Новый')",
+        (customer_name_entry.get(), order_details_entry.get()))
+
+    conn.commit()
+    conn.close()
+
+    customer_name_entry.delete(0, tk.END)
+    order_details_entry.delete(0, tk.END)
+
+    view_orders()
+
+
+def view_orders():
+    for i in tree.get_children():
+        tree.delete(i)
+
+    conn = sqlite3.connect('business_orders.db')
+    cur = conn.cursor()
+
+    cur.execute("SELECT * FROM orders")
+    rows = cur.fetchall()
+
+    for row in rows:
+        tree.insert("", tk.END, values=row)
+
+    conn.close()
 
 
 # Создаём окошко интерфейса
@@ -32,5 +78,8 @@ tree = ttk.Treeview(app, columns=columns, show="headings")
 for column in columns:
     tree.heading(column, text=column)
 tree.pack()
+
+init_db()
+view_orders()
 
 app.mainloop()

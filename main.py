@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from tkinter import messagebox
 import sqlite3
 
 
@@ -51,6 +52,24 @@ def view_orders():
 
     conn.close()
 
+def complete_order(messagebox=None):
+    selected_item = tree.selection()
+
+    if selected_item:
+        order_id = tree.item(selected_item, 'values')[0]
+
+        conn = sqlite3.connect('business_orders.db')
+        cur = conn.cursor()
+
+        cur.execute("UPDATE orders SET status='Завершён' WHERE id=?", (order_id,))
+
+        conn.commit()
+        conn.close()
+
+        view_orders()
+    else:
+        messagebox.showwarning("Предупреждение", "Выберите заказ для завершения")
+
 
 # Создаём окошко интерфейса
 app = tk.Tk()
@@ -71,6 +90,9 @@ order_details_entry.pack()
 
 # Создаём кнопку, которая будет добавлять введённые данные в таблицу
 add_button = tk.Button(app, text="Добавить заказ", command=add_order).pack()
+
+complete_button = tk.Button(app, text="Завершить заказ", command=complete_order)
+complete_button.pack()
 
 # Используем функцию, чтобы создать таблицу из колонок, которые в ней размещены
 columns = ("id", "customer_name", "order_details", "status")
